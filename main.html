@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Gaming Survey</title>
+		<link rel="stylesheet" href="styles.css">
+	</head>
+
+	<body>
+
+		<div class="form-plain">
+			IGN (in-game name)
+			<input id='in_game_name' type='text'>
+			GPU Brand
+			<input id='gpu_brand' type='text'>
+			GPU Model
+			<input id='gpu_model' type='text'>
+			VRAM
+			<input id='vram' type='text'>
+			Console
+			<input id='console' type='text'>
+			Favorite Game
+			<input id='favorite_game' type='text'>
+			Genre
+			<input id='genre' type='text'>
+			Resolution
+			<input id='resolution' type='text'>
+			Mouse
+			<input id='mouse' type='text'>
+			Keyboard
+			<input id='keyboard' type='text'>
+
+			<button class="btn-right" type="button" onclick="clickButton( document.getElementById('in_game_name').value ,document.getElementById('gpu_brand').value, document.getElementById('gpu_model').value, document.getElementById('vram').value, document.getElementById('console').value, document.getElementById('favorite_game').value, document.getElementById('genre').value, document.getElementById('resolution').value, document.getElementById('mouse').value, document.getElementById('keyboard').value )">add</button>
+		</div>
+
+		<script>
+		const clickButton = (a, b, c, d, e, f, g, h, i, j) => {
+			const postData = {
+				in_game_name: a,
+				gpu_brand: b,
+				gpu_model: c,
+				vram: d,
+				console: e,
+				favorite_game: f,
+				genre: g,
+				resolution: h,
+				mouse: i,
+				keyboard: j
+			};
+
+			const data = {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(postData)
+			};
+
+			async function fetchData() {
+				try {
+					const response = await fetch('http://127.0.0.1:8000/surveys', data);
+					const body = await response.json();
+					console.log(response);
+					if (body.message) {
+						alert('Survey saved!');
+					} else {
+						throw new Error('Failed to fetch data');
+					}
+				} catch (error) {
+					console.error('Error:', error);
+				}
+			}
+
+			fetchData();
+		};
+		</script>
+	</body>
+</html>

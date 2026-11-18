@@ -1,0 +1,99 @@
+from fastapi import FastAPI
+from sqlmodel import Session , select
+from contextlib import asynccontextmanager
+from database import create_db_and_tables, engine
+from fastapi.middleware.cors import CORSMiddleware
+import hashlib
+
+from models import Users
+from models import GamingSurvey
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
+
+origins = [
+    "http://localhost:3000",  # React development server
+    "https://example.com",    # Production frontend
+    "*"
+] # Define allowed origins (domains that can access your API)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,        # Allow these origins
+    allow_credentials=True,       # Allow cookies, authentication headers
+    allow_methods=["*"],          # Allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],          # Allow all headers
+)
+
+
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+
+@app.get("/users/{id}")
+async def get_user(id):
+    with Session(engine) as session:
+        print(id,'--------------------------------------------------------------')
+        user = session.get(Users, id)
+        return {"message": user}
+    
+
+@app.post("/users")
+async def create_user(users  : Users):
+    with Session(engine) as session:
+        users.password = hashlib.sha256(users.password.encode()).hexdigest()
+        session.add(users)
+        session.commit()
+        session.refresh(users)
+        return {"message": users}
+    
+@app.post("/usersLogin")
+async def login_user(users  : Users):
+    with Session(engine) as session:
+
+
+        print()
+        hashed_input = hashlib.sha256(users.password.encode()).hexdigest()
+        statement = select(Users).where(Users.name == users.name).where(Users.password == hashed_input)
+        results = session.exec(statement)
+
+        # if(results)
+
+        # print('-----------------------------')
+        # print(Users.password , users.password)
+        # print('-----------------------------')
+
+        result = results.first()
+        print(result)
+
+        if (result == None):
+            return {"status":"failed"}
+
+
+        return {
+            "status":"success",
+            "data": result
+            }
+    
+@app.get("/surveys/{id}")
+async def get_survey(id):
+    with Session(engine) as session:
+        print(id,'--------------------------------------------------------------')
+        result = session.get(GamingSurvey, id)
+        return {"message": result}
+
+
+@app.post("/surveys")
+async def create_survey(survey  : GamingSurvey):
+    with Session(engine) as session:
+        session.add(survey)
+        session.commit()
+        session.refresh(survey)
+        return {"message": survey}
